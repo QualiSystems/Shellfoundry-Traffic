@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Packaging
+wheel
+setuptools-scm
+twine
