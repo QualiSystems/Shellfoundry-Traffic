@@ -1,0 +1,6 @@
+<Driver Description="CPE shell" MainClass="shellfoundry_test_driver.ShellFoundry2Driver" Name="ShellFoundry2Driver" PythonVersion="3" Version="0.4.0">
+    <Layout>
+        <Command Description="Import Cable Modem into Cloudshell" DisplayName="Autoload" Name="get_inventory" Tags="">
+        </Command>
+    </Layout>
+</Driver>

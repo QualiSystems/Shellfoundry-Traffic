@@ -9,7 +9,7 @@ def main():
         long_description = f.read()
 
     setup(
-        name='cloudshell-traffic',
+        name='shellfoundry-traffic',
         url='https://github.com/QualiSystems/shellfoundry-traffic',
         use_scm_version={
             'root': '.',
@@ -27,6 +27,8 @@ def main():
         install_requires=install_requires,
         packages=find_packages(exclude=['tests']),
         include_package_data=True,
+
+        entry_points={'console_scripts': ['shellfoundry_traffic = shellfoundry_traffic.cmd.rpyc_server:main']},
 
         classifiers=[
             'Development Status :: 5 - Production/Stable',

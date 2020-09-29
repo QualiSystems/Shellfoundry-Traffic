@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<properties>
+
+    <!-- The address of the Quali server on which to deploy, mandatory -->
+    <serverRootAddress>172.30.180.86</serverRootAddress>
+
+    <!-- The port of the Quali server on which to deploy, defaults to "8029" -->
+    <port>8029</port>
+
+    <!-- The server admin username, password and domain to use when deploying -->
+    <username>admin</username>
+    <password>civ1C2018</password>
+    <domain>LAAS</domain>
+
+    <!-- Simple patterns to filter when sending the driver to the server separated by semicolons (e.g. "file.xml;logs/", also supports regular expressions),
+ on top of the patterns specified here the plugin will automatically filter the "deployment/" and ".idea/" folders and the "deployment.xml" file -->
+    <fileFilters>dont_upload_me.xml</fileFilters>
+
+</properties>

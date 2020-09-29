@@ -1,0 +1,32 @@
+description: TOSCA based Test shell
+
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+imports:
+  - cloudshell_standard: cloudshell_resource_standard_2_0_3.yaml
+
+metadata:
+  template_name: ShellFoundryTest_1
+  template_author: yoram@ignissoft.com
+  template_version: 0.1.0
+  template_icon: shell-icon.png
+  traffic:
+    main_class: shellfoundry_test_driver.ShellFoundry1Driver
+
+node_types:
+
+  vendor.resource.ShellFoundryTest_1:
+    derived_from: cloudshell.nodes.GenericResource
+    properties:
+      attribute_1:
+        type: string
+    capabilities:
+      auto_discovery_capability:
+        type: cloudshell.capabilities.AutoDiscovery
+    artifacts:
+      icon:
+        file: shell-icon.png
+        type: tosca.artifacts.File
+      driver:
+        file: ShellFoundryTest_1.zip
+        type: tosca.artifacts.File

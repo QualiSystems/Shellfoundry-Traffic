@@ -14,7 +14,7 @@ from cloudshell.shell.core.driver_context import (ResourceCommandContext, Resour
                                                   ReservationContextDetails, ConnectivityContext, InitCommandContext)
 from cloudshell.traffic.helpers import add_service_to_reservation, add_connector_to_reservation
 
-import cloudshell_scripts_helpers as script_help
+import shellfoundry_traffic.cloudshell_scripts_helpers as script_helpers
 
 
 def load_devices(devices_env=''):
@@ -73,6 +73,7 @@ def get_shell_root():
             deployment_dir = path.dirname(deployment_dir)
     return deployment_dir
 
+
 def get_deployment_root():
     deployment = get_shell_root() + '/deployment.xml'
     return ET.parse(deployment).getroot()
@@ -88,7 +89,7 @@ def get_credentials_from_deployment():
     return host, username, password, domain
 
 
-def create_session_from_deployment():
+def create_session_from_deployment() -> CloudShellAPISession:
     return CloudShellAPISession(*get_credentials_from_deployment())
 
 
@@ -185,8 +186,8 @@ def create_service_command_context(session, service_name, alias=None, attributes
 
     os.environ['DEVBOOTSTRAP'] = 'True'
     debug_attach_from_deployment(reservation_id, service_name=alias)
-    reservation = script_help.get_reservation_context_details()
-    resource = script_help.get_resource_context_details()
+    reservation = script_helpers.get_reservation_context_details()
+    resource = script_helpers.get_resource_context_details()
 
     connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
                                        CloudShellSessionContext.DEFAULT_API_SCHEME)
