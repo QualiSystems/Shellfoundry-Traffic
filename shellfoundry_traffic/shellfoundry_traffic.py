@@ -16,6 +16,8 @@ from shellfoundry.commands.generate_command import GenerateCommandExecutor
 from shellfoundry.commands.install_command import InstallCommandExecutor
 from shellfoundry.commands.pack_command import PackCommandExecutor
 
+from shellfoundry_traffic.script_utils import ScriptCommandExecutor
+
 
 popenargs = ['py', '-3', '-m', 'pip', 'show', 'shellfoundry_traffic']
 pip_output = subprocess.run(popenargs, stdout=subprocess.PIPE).stdout.decode()
@@ -26,16 +28,16 @@ except IndexError:
 
 
 def _get_main_class(shell_definition_yaml: str) -> str:
-    tosca_meta = Path(os.getcwd()).joinpath(f'{shell_definition_yaml}.yaml')
-    with open(tosca_meta, 'r') as file:
-        shell_definition = yaml.load(file)
+    shell_definition_yaml = Path(os.getcwd()).joinpath(f'{shell_definition_yaml}.yaml')
+    with open(shell_definition_yaml, 'r') as file:
+        shell_definition = yaml.safe_load(file)
         return shell_definition['metadata']['traffic']['main_class']
 
 
 def _set_toska_meta(shell_definition_yaml: str) -> None:
     tosca_meta = Path(os.getcwd()).joinpath('TOSCA-Metadata').joinpath('TOSCA.meta')
     with open(tosca_meta, 'r') as file:
-        meta_data = yaml.load(file)
+        meta_data = yaml.safe_load(file)
         meta_data['Entry-Definitions'] = f'{shell_definition_yaml}.yaml'
     with open(tosca_meta, 'w') as file:
         yaml.dump(meta_data, file)
@@ -66,6 +68,12 @@ def pack(shell_definition_yaml: str) -> None:
     PackCommandExecutor().pack()
 
 
+def script(script_definition_yaml: str) -> None:
+    script_utils = ScriptCommandExecutor(script_definition_yaml)
+    script_utils.zip_files()
+    script_utils.update_script()
+
+
 def generate_cli(parsed_args: Namespace) -> None:
     """ Extract CLI attributes and call shellfoundry-traffic generate. """
     generate(parsed_args.yaml)
@@ -81,13 +89,18 @@ def pack_cli(parsed_args: Namespace) -> None:
     pack(parsed_args.yaml)
 
 
+def script_cli(parsed_args: Namespace) -> None:
+    """ Extract CLI attributes and call shellfoundry-traffic update. """
+    script(parsed_args.yaml)
+
+
 def main(args=None) -> None:
     """ shellfoundry_traffic CLI command implementation. """
     parser = ArgumentParser(description='shellfoundry wrapper for traffic shells',
                             formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=version)
     parser.add_argument('-y', '--yaml', required=True, metavar='YAML file', type=str,
-                        help='local shell-definition.yaml file')
+                        help='local shell definition yaml file')
 
     subparsers = parser.add_subparsers(help='type "shellfoundry-traffic [subcommand] -h" for help.')
 
@@ -102,6 +115,10 @@ def main(args=None) -> None:
     parser_pack = subparsers.add_parser('pack', formatter_class=RawDescriptionHelpFormatter,
                                         description='set shell-definition.yaml file and main class, then pack')
     parser_pack.set_defaults(func=pack_cli)
+
+    parser_pack = subparsers.add_parser('script', formatter_class=RawDescriptionHelpFormatter,
+                                        description='update existing script on server')
+    parser_pack.set_defaults(func=script_cli)
 
     parsed_args = parser.parse_args(args)
     parsed_args.func(parsed_args)

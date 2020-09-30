@@ -8,7 +8,7 @@ install:
 
 .PHONY: build
 build:
-	rm -rf dist/*
+	rm -rf dist/
 	python setup.py bdist_wheel
 
 upload:

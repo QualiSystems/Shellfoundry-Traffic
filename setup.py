@@ -28,7 +28,7 @@ def main():
         packages=find_packages(exclude=['tests']),
         include_package_data=True,
 
-        entry_points={'console_scripts': ['shellfoundry_traffic = shellfoundry_traffic.cmd.rpyc_server:main']},
+        entry_points={'console_scripts': ['shellfoundry_traffic = shellfoundry_traffic.shellfoundry_traffic:main']},
 
         classifiers=[
             'Development Status :: 5 - Production/Stable',

@@ -1,0 +1,8 @@
+
+metadata:
+  script_name: Test Script
+  template_author: yoram@ignissoft.com
+
+files:
+  exclude:
+    - exclude.txt

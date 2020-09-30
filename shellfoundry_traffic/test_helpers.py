@@ -13,6 +13,7 @@ from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionCo
 from cloudshell.shell.core.driver_context import (ResourceCommandContext, ResourceContextDetails, AutoLoadCommandContext,
                                                   ReservationContextDetails, ConnectivityContext, InitCommandContext)
 from cloudshell.traffic.helpers import add_service_to_reservation, add_connector_to_reservation
+from shellfoundry.utilities.config_reader import Configuration, CloudShellConfigReader
 
 import shellfoundry_traffic.cloudshell_scripts_helpers as script_helpers
 
@@ -91,6 +92,11 @@ def get_credentials_from_deployment():
 
 def create_session_from_deployment() -> CloudShellAPISession:
     return CloudShellAPISession(*get_credentials_from_deployment())
+
+
+def create_session_from_config() -> CloudShellAPISession:
+    config = Configuration(CloudShellConfigReader()).read()
+    return CloudShellAPISession(config.host, config.username, config.password, config.domain)
 
 
 def create_topology_reservation(session, topology_path, global_inputs, reservation_name='tg regression tests'):
@@ -204,8 +210,8 @@ def create_resource_command_context(session, resource_path):
 
     os.environ['DEVBOOTSTRAP'] = 'True'
     debug_attach_from_deployment(reservation_id, resource_path)
-    reservation = script_help.get_reservation_context_details()
-    resource = script_help.get_resource_context_details()
+    reservation = script_helpers.get_reservation_context_details()
+    resource = script_helpers.get_resource_context_details()
 
     connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
                                        CloudShellSessionContext.DEFAULT_API_SCHEME)
