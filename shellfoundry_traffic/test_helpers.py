@@ -3,6 +3,7 @@ import json
 import os
 import time
 from os import path
+from typing import Optional, Tuple
 
 import yaml
 import xml.etree.ElementTree as ET
@@ -11,7 +12,8 @@ from cloudshell.api.cloudshell_api import CloudShellAPISession, ResourceAttribut
 from cloudshell.helpers.scripts.cloudshell_dev_helpers import attach_to_cloudshell_as
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 from cloudshell.shell.core.driver_context import (ResourceCommandContext, ResourceContextDetails, AutoLoadCommandContext,
-                                                  ReservationContextDetails, ConnectivityContext, InitCommandContext)
+                                                  ReservationContextDetails, ConnectivityContext, InitCommandContext,
+                                                  AppContext)
 from cloudshell.traffic.helpers import add_service_to_reservation, add_connector_to_reservation
 from shellfoundry.utilities.config_reader import Configuration, CloudShellConfigReader
 
@@ -130,119 +132,88 @@ def end_reservation(session, reservation_id):
         pass
 
 
-def create_init_command_context(session, family, model, address, attributes, type, name='testing'):
-    """
-    :param CloudShellAPISession session:
-    :param family:
-    :param model:
-    :param address:
-    :param type: Resource or Service
-    :param attributes:
-    :param name:
-    :return: Dict of attributes
-    """
+def _conn_and_res(session: CloudShellAPISession, family: str, model: str, address: str, attributes: dict, type: str,
+                  full_name: str) -> Tuple[ConnectivityContext, ResourceContextDetails]:
+    if not attributes:
+        attributes = {}
     connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
                                        CloudShellSessionContext.DEFAULT_API_SCHEME)
-    resource = ResourceContextDetails(id='ididid', name=name, fullname='Testing/' + name,
-                                      address=address, family=family, model=model, attributes=attributes, type=type,
-                                      app_context='', networks_info='', description='',
+    resource = ResourceContextDetails(id='ididid', name=path.basename(full_name), fullname=full_name, type=type,
+                                      address=address, model=model, family=family, attributes=attributes,
+                                      app_context=AppContext('', ''), networks_info='', description='',
                                       shell_standard='', shell_standard_version='')
-    context = InitCommandContext(connectivity, resource)
-    return context
+    return connectivity, resource
 
 
-def create_autoload_context(session, family, model, address, attributes, name='testing'):
-    """
-    :param CloudShellAPISession session:
-    :param family:
-    :param model:
-    :param address:
-    :param type: Resource or Service
-    :param attributes:
-    :param name:
-    :return: Dict of attributes
-    """
-    connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
-                                       CloudShellSessionContext.DEFAULT_API_SCHEME)
-    resource = ResourceContextDetails(id='ididid', name=name, fullname='Testing/' + name,
-                                      address=address, family=family, model=model, attributes=attributes,
-                                      type='Resource',
-                                      app_context='', networks_info='', description='',
-                                      shell_standard='', shell_standard_version='')
-    return AutoLoadCommandContext(connectivity, resource)
+def autoload_command_context(session: CloudShellAPISession, family: str, model: str, address: str,
+                             attributes: Optional[dict] = None) -> AutoLoadCommandContext:
+    return AutoLoadCommandContext(*_conn_and_res(session, family, model, address, attributes, 'Resource', ''))
 
 
-def create_service_command_context(session, service_name, alias=None, attributes=[]):
-    """
+def service_init_command_context(session: CloudShellAPISession, model: str,
+                                 attributes: Optional[dict] = None) -> InitCommandContext:
+    return InitCommandContext(*_conn_and_res(session, 'CS_CustomService', model, 'na', attributes, 'Service', ''))
 
-    :param CloudShellAPISession session:
-    :param service_name:
-    :param alias:
-    :param attributes:
-    :return:
-    """
-    reservation = create_reservation(session)
-    reservation_id = reservation.Reservation.Id
+
+def resource_init_command_context(session: CloudShellAPISession, family: str, model: str, address: str,
+                                  attributes: Optional[dict] = None, full_name='Testing/testing') -> InitCommandContext:
+    return InitCommandContext(*_conn_and_res(session, family, model, address, attributes, 'Resource', full_name))
+
+
+def service_command_context(session: CloudShellAPISession, service_name: str, alias: Optional[str] = None,
+                            attributes: Optional[list] = None) -> ResourceCommandContext:
+    """ Create reservation, add service to reservation, and create ResourceCommandContext. """
+
+    if not attributes:
+        attributes = []
     if not alias:
         alias = service_name
-    session.AddServiceToReservation(reservationId=reservation_id,
-                                    serviceName=service_name,
-                                    alias=alias,
-                                    attributes=attributes)
-
-    os.environ['DEVBOOTSTRAP'] = 'True'
-    debug_attach_from_deployment(reservation_id, service_name=alias)
-    reservation = script_helpers.get_reservation_context_details()
-    resource = script_helpers.get_resource_context_details()
-
-    connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
-                                       CloudShellSessionContext.DEFAULT_API_SCHEME)
-
-    context = ResourceCommandContext(connectivity, resource, reservation, [])
-    return context
-
-
-def create_resource_command_context(session, resource_path):
 
     reservation = create_reservation(session)
-    reservation_id = reservation.Reservation.Id
-    session.AddResourcesToReservation(reservationId=reservation_id, resourcesFullPath=[resource_path])
+    session.AddServiceToReservation(reservationId=reservation.Reservation.Id, serviceName=service_name, alias=alias,
+                                    attributes=attributes)
 
+    # todo: do i really need it?
     os.environ['DEVBOOTSTRAP'] = 'True'
-    debug_attach_from_deployment(reservation_id, resource_path)
+    debug_attach_from_deployment(reservation.Reservation.Id, service_name=alias)
     reservation = script_helpers.get_reservation_context_details()
     resource = script_helpers.get_resource_context_details()
 
     connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
                                        CloudShellSessionContext.DEFAULT_API_SCHEME)
-
-    context = ResourceCommandContext(connectivity, resource, reservation, [])
-    return context
+    return ResourceCommandContext(connectivity, resource, reservation, [])
 
 
-def create_autoload_resource(session, family, model, address, name, attributes):
-    """
-    :param CloudShellAPISession session:
-    :param family:
-    :param model:
-    :param address:
-    :param name:
-    :param attributes:
-    :return:
-    """
+def create_resource_command_context(session: CloudShellAPISession, resource_path: str) -> ResourceCommandContext:
+    """ Create reservation, add service to reservation, and create ResourceCommandContext. """
+
+    reservation = create_reservation(session)
+    session.AddResourcesToReservation(reservationId=reservation.Reservation.Id, resourcesFullPath=[resource_path])
+
+    # todo: do i really need it?
+    os.environ['DEVBOOTSTRAP'] = 'True'
+    debug_attach_from_deployment(reservation.Reservation.Id, resource_path)
+    reservation = script_helpers.get_reservation_context_details()
+    resource = script_helpers.get_resource_context_details()
+
+    connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
+                                       CloudShellSessionContext.DEFAULT_API_SCHEME)
+    return ResourceCommandContext(connectivity, resource, reservation, [])
+
+
+def create_autoload_resource(session: CloudShellAPISession, model: str, full_name: str, address: Optional[str] = 'na',
+                             attributes: Optional[list] = None):
+    """ Create resource for Autoload testing. """
+    folder = path.dirname(full_name)
+    name = path.basename(full_name)
     existing_resource = [r for r in session.GetResourceList().Resources if r.Name == name]
     if existing_resource:
         session.DeleteResource(existing_resource[0].Name)
-    resource = session.CreateResource(resourceFamily=family,
-                                      resourceModel=model,
-                                      resourceName=name,
-                                      resourceAddress=address,
-                                      folderFullPath='',
-                                      parentResourceFullPath='',
-                                      resourceDescription='should be removed after test')
+    resource = session.CreateResource(resourceModel=model, resourceName=name, folderFullPath=folder,
+                                      resourceAddress=address, resourceDescription='should be removed after test')
     session.UpdateResourceDriver(resource.Name, model)
     if attributes:
-        session.SetAttributesValues(ResourceAttributesUpdateRequest(resource.Name, attributes))
+        session.SetAttributesValues([ResourceAttributesUpdateRequest(full_name, attributes)])
     return resource
 
 
