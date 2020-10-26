@@ -3,6 +3,8 @@ FLOW: - directory zipped up
       - updated on cloud-shell server
 NOTE: - This script is only for updating EXISTING scripts.
       - Scripts MUST be uploaded manually first time. (this tool can still be used to do zipping)
+
+:todo: move the class into shellfoundry_traffic.py and delete the module?
 """
 
 import os

@@ -56,9 +56,6 @@ def get_reservation_context_details():
     :rtype: ReservationContextDetails
     """
     res_dict = get_reservation_context_details_dict()
-    env_params = EnvironmentParameters(get_global_inputs(),
-                                       get_resource_requirement_inputs(),
-                                       get_resource_additional_info_inputs())
     res_details = ReservationContextDetails(environment_name=res_dict['environmentName'],
                                             environment_path=res_dict['environmentPath'],
                                             domain=res_dict['domain'],

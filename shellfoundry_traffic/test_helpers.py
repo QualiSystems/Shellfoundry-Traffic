@@ -8,13 +8,14 @@ from typing import Optional, Tuple
 import yaml
 import xml.etree.ElementTree as ET
 
-from cloudshell.api.cloudshell_api import CloudShellAPISession, ResourceAttributesUpdateRequest, AttributeNameValue
+from cloudshell.api.cloudshell_api import (CloudShellAPISession, ResourceAttributesUpdateRequest, AttributeNameValue,
+                                           ResourceInfo, CreateReservationResponseInfo, SetConnectorRequest)
 from cloudshell.helpers.scripts.cloudshell_dev_helpers import attach_to_cloudshell_as
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 from cloudshell.shell.core.driver_context import (ResourceCommandContext, ResourceContextDetails, AutoLoadCommandContext,
-                                                  ReservationContextDetails, ConnectivityContext, InitCommandContext,
-                                                  AppContext)
-from cloudshell.traffic.helpers import add_service_to_reservation, add_connector_to_reservation
+                                                  ConnectivityContext, InitCommandContext, AppContext)
+from cloudshell.traffic.helpers import wait_for_services, wait_for_connectors
+from cloudshell.traffic.healthcheck import HEALTHCHECK_STATUS_MODEL
 from shellfoundry.utilities.config_reader import Configuration, CloudShellConfigReader
 
 import shellfoundry_traffic.cloudshell_scripts_helpers as script_helpers
@@ -83,7 +84,6 @@ def get_deployment_root():
 
 
 def get_credentials_from_deployment():
-
     root = get_deployment_root()
     host = root.find('serverRootAddress').text
     username = root.find('username').text
@@ -109,10 +109,17 @@ def create_topology_reservation(session, topology_path, global_inputs, reservati
                                                       durationInMinutes=60)
 
 
-def create_reservation(session, reservation_name='tg regression tests'):
+def create_reservation(session: CloudShellAPISession,
+                       reservation_name: Optional[str] = 'tg regression tests',
+                       topology_name: Optional[str] = None) -> CreateReservationResponseInfo:
+    """ Create new named reservation. If there is already existing resrvation with the same name it will be ended. """
     end_named_reservations(session, reservation_name)
     _, owner, _, _ = get_credentials_from_deployment()
-    return session.CreateImmediateReservation(reservationName=reservation_name, owner=owner, durationInMinutes=60)
+    if topology_name:
+        return session.CreateImmediateTopologyReservation(reservation_name, owner, topologyFullPath=topology_name,
+                                                          durationInMinutes=60)
+    else:
+        return session.CreateImmediateReservation(reservation_name, owner, durationInMinutes=60)
 
 
 def end_named_reservations(session, reservation_name):
@@ -132,19 +139,6 @@ def end_reservation(session, reservation_id):
         pass
 
 
-def _conn_and_res(session: CloudShellAPISession, family: str, model: str, address: str, attributes: dict, type: str,
-                  full_name: str) -> Tuple[ConnectivityContext, ResourceContextDetails]:
-    if not attributes:
-        attributes = {}
-    connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
-                                       CloudShellSessionContext.DEFAULT_API_SCHEME)
-    resource = ResourceContextDetails(id='ididid', name=path.basename(full_name), fullname=full_name, type=type,
-                                      address=address, model=model, family=family, attributes=attributes,
-                                      app_context=AppContext('', ''), networks_info='', description='',
-                                      shell_standard='', shell_standard_version='')
-    return connectivity, resource
-
-
 def autoload_command_context(session: CloudShellAPISession, family: str, model: str, address: str,
                              attributes: Optional[dict] = None) -> AutoLoadCommandContext:
     return AutoLoadCommandContext(*_conn_and_res(session, family, model, address, attributes, 'Resource', ''))
@@ -160,49 +154,20 @@ def resource_init_command_context(session: CloudShellAPISession, family: str, mo
     return InitCommandContext(*_conn_and_res(session, family, model, address, attributes, 'Resource', full_name))
 
 
-def service_command_context(session: CloudShellAPISession, service_name: str, alias: Optional[str] = None,
-                            attributes: Optional[list] = None) -> ResourceCommandContext:
-    """ Create reservation, add service to reservation, and create ResourceCommandContext. """
-
-    if not attributes:
-        attributes = []
-    if not alias:
-        alias = service_name
-
-    reservation = create_reservation(session)
-    session.AddServiceToReservation(reservationId=reservation.Reservation.Id, serviceName=service_name, alias=alias,
-                                    attributes=attributes)
-
-    # todo: do i really need it?
+def resource_command_context(session: CloudShellAPISession, reservation_id: str, resource_name: Optional[str] = None,
+                             service_name: Optional[str] = None) -> ResourceCommandContext:
+    """ Create reservation, add service to reservation, get context details and create ResourceCommandContext. """
     os.environ['DEVBOOTSTRAP'] = 'True'
-    debug_attach_from_deployment(reservation.Reservation.Id, service_name=alias)
+    debug_attach_from_deployment(reservation_id, resource_name, service_name)
     reservation = script_helpers.get_reservation_context_details()
     resource = script_helpers.get_resource_context_details()
-
-    connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
-                                       CloudShellSessionContext.DEFAULT_API_SCHEME)
-    return ResourceCommandContext(connectivity, resource, reservation, [])
-
-
-def create_resource_command_context(session: CloudShellAPISession, resource_path: str) -> ResourceCommandContext:
-    """ Create reservation, add service to reservation, and create ResourceCommandContext. """
-
-    reservation = create_reservation(session)
-    session.AddResourcesToReservation(reservationId=reservation.Reservation.Id, resourcesFullPath=[resource_path])
-
-    # todo: do i really need it?
-    os.environ['DEVBOOTSTRAP'] = 'True'
-    debug_attach_from_deployment(reservation.Reservation.Id, resource_path)
-    reservation = script_helpers.get_reservation_context_details()
-    resource = script_helpers.get_resource_context_details()
-
     connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
                                        CloudShellSessionContext.DEFAULT_API_SCHEME)
     return ResourceCommandContext(connectivity, resource, reservation, [])
 
 
 def create_autoload_resource(session: CloudShellAPISession, model: str, full_name: str, address: Optional[str] = 'na',
-                             attributes: Optional[list] = None):
+                             attributes: Optional[list] = None) -> ResourceInfo:
     """ Create resource for Autoload testing. """
     folder = path.dirname(full_name)
     name = path.basename(full_name)
@@ -217,68 +182,37 @@ def create_autoload_resource(session: CloudShellAPISession, model: str, full_nam
     return resource
 
 
-def create_command_context_2g(session, ports, controller, attributes):
-
-    """ Create command context from scratch.
-
-    :param session: CloudShell API session
-    :type session: cloudshell.api.cloudshell_api.CloudShellAPISession
-    :param controller: TG controller name
-    :param ports: list of TG port resources address ['chassis/module/port',...]
-    :param attributes: for driver tests - dictionary {name: value} of TG controller attributes
-                       for shell tests - list [AttributeNameValue] of TG controller attributes
-    """
-
-    connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
-                                       CloudShellSessionContext.DEFAULT_API_SCHEME)
-
-    reservation = session.CreateImmediateReservation(reservationName='tg regression tests', owner='admin',
-                                                     durationInMinutes=60)
-    reservation_id = reservation.Reservation.Id
-
-    # session.AddResourcesToReservation(reservationId=reservation_id, resourcesFullPath=ports)
-
-    shell_attributes = attributes if type(attributes) is list else []
-    session.AddServiceToReservation(reservationId=reservation_id,
-                                    serviceName=controller,
-                                    alias=controller,
-                                    attributes=shell_attributes)
-    service = session.GetReservationDetails(reservation_id).ReservationDescription.Services[0]
-
-    resource = ResourceContextDetails(id='ididid', name= service.ServiceName, fullname='', type='Service', address='',
-                                      model='', family='', description='', attributes=attributes, app_context='',
-                                      networks_info='',
-                                      shell_standard='cloudshell_traffic_generator_controller_standard',
-                                      shell_standard_version='2_0_0')
-
-    reservation = ReservationContextDetails(environment_name='', environment_path='',
-                                            domain=reservation.Reservation.DomainName, description='',
-                                            owner_user=reservation.Reservation.Owner, owner_email='',
-                                            reservation_id=reservation_id)
-
-    context = ResourceCommandContext(connectivity, resource, reservation, [])
-    return context
-
-
-def create_healthcheck_service(context, resource=None, alias='Healthcheck_Status', status_selector='none'):
-    attributes = [AttributeNameValue('Healthcheck_Status.status_selector', status_selector)]
-    if not resource:
-        resource = context.resource
-    service = add_service_to_reservation(context, 'Healthcheck_Status', alias, attributes)
-    source_name = resource.fullname if type(resource) == ResourceContextDetails else resource.Alias
-    add_connector_to_reservation(context, source_name, service.Alias)
-    return service
+def create_healthcheck_service(session:CloudShellAPISession, reservation_id: str, source: str,
+                               alias: Optional[str] = HEALTHCHECK_STATUS_MODEL,
+                               status_selector: Optional[str] = 'none') -> None:
+    """ Create health check service and connect it to to the requested source. """
+    attributes = [AttributeNameValue(f'{HEALTHCHECK_STATUS_MODEL}.status_selector', status_selector)]
+    session.AddServiceToReservation(reservation_id, HEALTHCHECK_STATUS_MODEL, alias, attributes)
+    connector = SetConnectorRequest(source, alias, Direction='bi', Alias=alias)
+    session.SetConnectorsInReservation(reservation_id, [connector])
+    wait_for_services(session, reservation_id, alias, timeout=8)
+    wait_for_connectors(session, reservation_id, connector.Alias)
 
 
 def debug_attach_from_deployment(reservation_id, resource_name=None, service_name=None):
-
     host, username, password, domain = get_credentials_from_deployment()
-    attach_to_cloudshell_as(
-        server_address=host,
-        user=username,
-        password=password,
-        reservation_id=reservation_id,
-        domain=domain,
-        resource_name=resource_name,
-        service_name=service_name
-    )
+    attach_to_cloudshell_as(server_address=host,
+                            user=username,
+                            password=password,
+                            reservation_id=reservation_id,
+                            domain=domain,
+                            resource_name=resource_name,
+                            service_name=service_name)
+
+
+def _conn_and_res(session: CloudShellAPISession, family: str, model: str, address: str, attributes: dict, type: str,
+                  full_name: str) -> Tuple[ConnectivityContext, ResourceContextDetails]:
+    if not attributes:
+        attributes = {}
+    connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
+                                       CloudShellSessionContext.DEFAULT_API_SCHEME)
+    resource = ResourceContextDetails(id='ididid', name=path.basename(full_name), fullname=full_name, type=type,
+                                      address=address, model=model, family=family, attributes=attributes,
+                                      app_context=AppContext('', ''), networks_info='', description='',
+                                      shell_standard='', shell_standard_version='')
+    return connectivity, resource
