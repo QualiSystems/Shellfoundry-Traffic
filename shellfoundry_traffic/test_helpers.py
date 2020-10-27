@@ -182,16 +182,18 @@ def create_autoload_resource(session: CloudShellAPISession, model: str, full_nam
     return resource
 
 
-def create_healthcheck_service(session:CloudShellAPISession, reservation_id: str, source: str,
-                               alias: Optional[str] = HEALTHCHECK_STATUS_MODEL,
-                               status_selector: Optional[str] = 'none') -> None:
+def create_healthcheck_services(session: CloudShellAPISession, reservation_id: str, source: str,
+                                aliases: Optional[dict] = None) -> None:
     """ Create health check service and connect it to to the requested source. """
-    attributes = [AttributeNameValue(f'{HEALTHCHECK_STATUS_MODEL}.status_selector', status_selector)]
-    session.AddServiceToReservation(reservation_id, HEALTHCHECK_STATUS_MODEL, alias, attributes)
-    connector = SetConnectorRequest(source, alias, Direction='bi', Alias=alias)
-    session.SetConnectorsInReservation(reservation_id, [connector])
-    wait_for_services(session, reservation_id, alias, timeout=8)
-    wait_for_connectors(session, reservation_id, connector.Alias)
+    if not aliases:
+        aliases = {HEALTHCHECK_STATUS_MODEL: 'none'}
+    for alias, status_selector in aliases.items():
+        attributes = [AttributeNameValue(f'{HEALTHCHECK_STATUS_MODEL}.status_selector', status_selector)]
+        session.AddServiceToReservation(reservation_id, HEALTHCHECK_STATUS_MODEL, alias, attributes)
+        connector = SetConnectorRequest(source, alias, Direction='bi', Alias=alias)
+        session.SetConnectorsInReservation(reservation_id, [connector])
+    wait_for_services(session, reservation_id, list(aliases.keys()), timeout=8)
+    wait_for_connectors(session, reservation_id, list(aliases.keys()))
 
 
 def debug_attach_from_deployment(reservation_id, resource_name=None, service_name=None):
