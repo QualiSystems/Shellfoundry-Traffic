@@ -85,11 +85,11 @@ def get_resource_context_details():
                                          fullname=res_dict['fullname'],
                                          attributes=res_dict['attributes'],
                                          id='',
-                                         type=None,
+                                         type='',
                                          app_context=None,
-                                         networks_info=None,
-                                         shell_standard=None,
-                                         shell_standard_version=None)
+                                         networks_info='',
+                                         shell_standard='',
+                                         shell_standard_version='')
     return res_details
 
 

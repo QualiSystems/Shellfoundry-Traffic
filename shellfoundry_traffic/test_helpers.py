@@ -6,15 +6,15 @@ from os import path
 from typing import Optional, Tuple
 
 import yaml
-import xml.etree.ElementTree as Element_Tree
+import xml.etree.ElementTree as ET
 
 from cloudshell.api.cloudshell_api import (CloudShellAPISession, ResourceAttributesUpdateRequest, AttributeNameValue,
                                            ResourceInfo, CreateReservationResponseInfo, SetConnectorRequest)
 from cloudshell.helpers.scripts.cloudshell_dev_helpers import attach_to_cloudshell_as
 from cloudshell.shell.core.session.cloudshell_session import CloudShellSessionContext
 from cloudshell.shell.core.driver_context import (ResourceCommandContext, ResourceContextDetails,
-                                                  AutoLoadCommandContext,
-                                                  ConnectivityContext, InitCommandContext, AppContext)
+                                                  AutoLoadCommandContext, ConnectivityContext,
+                                                  InitCommandContext, AppContext)
 from cloudshell.traffic.helpers import wait_for_services, wait_for_connectors
 from cloudshell.traffic.healthcheck import HEALTHCHECK_STATUS_MODEL
 from shellfoundry.utilities.config_reader import Configuration, CloudShellConfigReader
@@ -66,7 +66,7 @@ def create_session_from_cloudshell_config():
 #
 
 
-xml_file = '/deployment.xml'
+DEPLOYMENT_XML = '/deployment.xml'
 
 
 def get_shell_root():
@@ -76,16 +76,16 @@ def get_shell_root():
         index += 1
         test_name = inspect.stack()[index][1]
     deployment_dir = path.dirname(test_name)
-    if not path.exists(deployment_dir + xml_file):
+    if not path.exists(deployment_dir + DEPLOYMENT_XML):
         deployment_dir = path.dirname(deployment_dir)
-        if not path.exists(deployment_dir + xml_file):
+        if not path.exists(deployment_dir + DEPLOYMENT_XML):
             deployment_dir = path.dirname(deployment_dir)
     return deployment_dir
 
 
 def get_deployment_root():
-    deployment = get_shell_root() + xml_file
-    return Element_Tree.parse(deployment).getroot()
+    deployment = get_shell_root() + DEPLOYMENT_XML
+    return ET.parse(deployment).getroot()
 
 
 def get_credentials_from_deployment():
@@ -212,13 +212,13 @@ def debug_attach_from_deployment(reservation_id, resource_name=None, service_nam
                             service_name=service_name)
 
 
-def _conn_and_res(session: CloudShellAPISession, family: str, model: str, address: str, attributes: dict, a_type: str,
+def _conn_and_res(session: CloudShellAPISession, family: str, model: str, address: str, attributes: dict, type_: str,
                   full_name: str) -> Tuple[ConnectivityContext, ResourceContextDetails]:
     if not attributes:
         attributes = {}
     connectivity = ConnectivityContext(session.host, '8029', '9000', session.token_id, '9.1',
                                        CloudShellSessionContext.DEFAULT_API_SCHEME)
-    resource = ResourceContextDetails(id='ididid', name=path.basename(full_name), fullname=full_name, type=a_type,
+    resource = ResourceContextDetails(id='ididid', name=path.basename(full_name), fullname=full_name, type=type_,
                                       address=address, model=model, family=family, attributes=attributes,
                                       app_context=AppContext('', ''), networks_info='', description='',
                                       shell_standard='', shell_standard_version='')
