@@ -19,8 +19,8 @@ from shellfoundry.commands.pack_command import PackCommandExecutor
 from shellfoundry_traffic.script_utils import ScriptCommandExecutor
 
 
-popenargs = ['py', '-3', '-m', 'pip', 'show', 'shellfoundry_traffic']
-pip_output = subprocess.run(popenargs, stdout=subprocess.PIPE).stdout.decode()
+popen_args = ['py', '-3', '-m', 'pip', 'show', 'shellfoundry_traffic']
+pip_output = subprocess.run(popen_args, stdout=subprocess.PIPE).stdout.decode()
 try:
     version = pip_output.strip().split('\n')[1].split()[1]
 except IndexError:

@@ -8,7 +8,7 @@ from cloudshell.shell.core.driver_context import ResourceContextDetails, Reserva
 
 def get_user_param(parameter):
     """
-    Returns a user param which is automaticlaly passed to the script
+    Returns a user param which is automatically passed to the script
     as an environment variable
     :param str parameter: The name of the user parameter
     :rtype: str
@@ -84,7 +84,7 @@ def get_resource_context_details():
                                          description=res_dict['description'],
                                          fullname=res_dict['fullname'],
                                          attributes=res_dict['attributes'],
-                                         id=None,
+                                         id='',
                                          type=None,
                                          app_context=None,
                                          networks_info=None,
@@ -118,8 +118,8 @@ def get_global_inputs():
     Get the global inputs dictionary for the current reservation
     :rtype: dict[str,str]
     """
-    reservationParams = get_reservation_context_details_dict()['parameters']
-    return _covert_to_python_dictionary(reservationParams['globalInputs'])
+    reservation_params = get_reservation_context_details_dict()['parameters']
+    return _covert_to_python_dictionary(reservation_params['globalInputs'])
 
 
 def get_resource_requirement_inputs():
@@ -127,9 +127,9 @@ def get_resource_requirement_inputs():
     Get the resource requirements inputs dictionary
     :rtype: ResourceInputs
     """
-    reservationParams = get_reservation_context_details_dict()['parameters']
+    reservation_params = get_reservation_context_details_dict()['parameters']
     return _covert_to_resource_inputs_dictionary(
-        reservationParams['resourceRequirements'])
+        reservation_params['resourceRequirements'])
 
 
 def get_resource_additional_info_inputs():
@@ -137,10 +137,9 @@ def get_resource_additional_info_inputs():
     Get the resource additional inputs inputs dictionary
     :rtype: ResourceInputs
     """
-    reservationParams = get_reservation_context_details_dict()['parameters']
+    reservation_params = get_reservation_context_details_dict()['parameters']
     return _covert_to_resource_inputs_dictionary(
-        reservationParams['resourceAdditionalInfo'])
-
+        reservation_params['resourceAdditionalInfo'])
 
 
 def get_permitted_users():
@@ -161,13 +160,12 @@ def _covert_to_permitted_users_list(permitted_users):
     return permitted_users_data
 
 
-
 def _get_quali_env_variable_object(name):
     json_string = os.environ[name]
     try:
         json_object = json.loads(json_string)
     except ValueError:
-        json_object = json.loads(json_string.replace('\\','\\\\'))
+        json_object = json.loads(json_string.replace('\\', '\\\\'))
     return json_object
 
 
@@ -176,14 +174,14 @@ def _get_quali_env_variable_as_string(name):
 
 
 def _covert_to_python_dictionary(parameters):
-    inputsDictionary = {}
+    inputs_dictionary = {}
     for param in parameters:
-        inputsDictionary[param['parameterName']] = param['value']
-    return inputsDictionary
+        inputs_dictionary[param['parameterName']] = param['value']
+    return inputs_dictionary
 
 
 def _covert_to_resource_inputs_dictionary(parameters):
-    inputsDictionary = ResourceInputs()
+    inputs_dictionary = ResourceInputs()
     for param in parameters:
         resource_name = param['resourceName']
         value = param['value']
@@ -191,8 +189,8 @@ def _covert_to_resource_inputs_dictionary(parameters):
         possible_values = param.get('possibleValues', None)
         data = ResourceInputData(resource_name, param_name, value,
                                  possible_values)
-        inputsDictionary[resource_name] = data
-    return inputsDictionary
+        inputs_dictionary[resource_name] = data
+    return inputs_dictionary
 
 
 class ConnectivityContextDetails:
@@ -254,8 +252,7 @@ class ResourceInputs:
             = resource_input_data
 
     def __iter__(self):
-        return self.dictionary.iteritems()
+        return self.dictionary.items()
 
     def iteritems(self):
         return self.__iter__()
-
