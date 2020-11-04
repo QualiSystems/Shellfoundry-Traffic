@@ -6,6 +6,7 @@ from setuptools import setup, find_packages
 
 
 def main():
+    """ Main entry point for setup.py """
 
     with open('requirements.txt') as f:
         install_requires = f.read().splitlines()
@@ -32,7 +33,7 @@ def main():
         packages=find_packages(exclude=['tests']),
         include_package_data=True,
 
-        entry_points={'console_scripts': ['shellfoundry_traffic = shellfoundry_traffic.shellfoundry_traffic:main']},
+        entry_points={'console_scripts': ['shellfoundry_traffic = shellfoundry_traffic.shellfoundry_traffic_cmd:main']},
 
         classifiers=[
             'Development Status :: 5 - Production/Stable',

@@ -16,7 +16,7 @@ from cloudshell.shell.core.driver_context import (ResourceCommandContext, Resour
                                                   AutoLoadCommandContext, ConnectivityContext,
                                                   InitCommandContext, AppContext)
 from cloudshell.traffic.helpers import wait_for_services, wait_for_connectors
-from cloudshell.traffic.healthcheck import HEALTHCHECK_STATUS_MODEL
+from cloudshell.traffic.health_check import HEALTH_CHECK_STATUS_MODEL
 from shellfoundry.utilities.config_reader import Configuration, CloudShellConfigReader
 
 import shellfoundry_traffic.cloudshell_scripts_helpers as script_helpers
@@ -187,14 +187,14 @@ def create_autoload_resource(session: CloudShellAPISession, model: str, full_nam
     return resource
 
 
-def create_healthcheck_services(session: CloudShellAPISession, reservation_id: str, source: str,
-                                aliases: Optional[dict] = None) -> None:
+def create_health_check_services(session: CloudShellAPISession, reservation_id: str, source: str,
+                                 aliases: Optional[dict] = None) -> None:
     """ Create health check service and connect it to to the requested source. """
     if not aliases:
-        aliases = {HEALTHCHECK_STATUS_MODEL: 'none'}
+        aliases = {HEALTH_CHECK_STATUS_MODEL: 'none'}
     for alias, status_selector in aliases.items():
-        attributes = [AttributeNameValue(f'{HEALTHCHECK_STATUS_MODEL}.status_selector', status_selector)]
-        session.AddServiceToReservation(reservation_id, HEALTHCHECK_STATUS_MODEL, alias, attributes)
+        attributes = [AttributeNameValue(f'{HEALTH_CHECK_STATUS_MODEL}.status_selector', status_selector)]
+        session.AddServiceToReservation(reservation_id, HEALTH_CHECK_STATUS_MODEL, alias, attributes)
         connector = SetConnectorRequest(source, alias, Direction='bi', Alias=alias)
         session.SetConnectorsInReservation(reservation_id, [connector])
     wait_for_services(session, reservation_id, list(aliases.keys()), timeout=8)
