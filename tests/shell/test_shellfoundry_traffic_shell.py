@@ -15,7 +15,7 @@ from _pytest.fixtures import SubRequest
 
 from cloudshell.rest.api import PackagingRestApiClient
 from shellfoundry.utilities.config_reader import Configuration, CloudShellConfigReader
-from shellfoundry_traffic.shellfoundry_traffic import main, _get_main_class
+from shellfoundry_traffic.shellfoundry_traffic_cmd import main, _get_main_class
 
 
 SHELL_FOUNDRY_TRAFFIC_TESTS = 'c:/temp/shell_foundry_traffic_tests'
