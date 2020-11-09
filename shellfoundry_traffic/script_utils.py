@@ -28,7 +28,12 @@ class ScriptCommandExecutor:
         self.script_zip = self.dist.joinpath(f'{self.script_definition["metadata"]["script_name"]}.zip')
 
     def should_zip(self, file: str) -> bool:
-        return file not in self.script_definition['files']['exclude']
+        """ Returns whether the file should be added to the shell zip file or not. """
+        if self.script_definition.get('files') and self.script_definition['files'].get('exclude'):
+            if file in self.script_definition['files']['exclude']:
+                return False
+        else:
+            return True
 
     def zip_files(self) -> None:
         with ZipFile(self.script_zip, 'w') as script:
