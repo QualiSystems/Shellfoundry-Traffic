@@ -4,7 +4,7 @@ FLOW: - directory zipped up
 NOTE: - This script is only for updating EXISTING scripts.
       - Scripts MUST be uploaded manually first time. (this tool can still be used to do zipping)
 
-:todo: move the class into shellfoundry_traffic.py and delete the module?
+:todo: move the class into shellfoundry_traffic_cmd.py and delete the module?
 """
 
 import os
@@ -18,9 +18,11 @@ from shellfoundry_traffic.test_helpers import create_session_from_config
 
 class ScriptCommandExecutor:
 
-    def __init__(self, script_definition_yaml: str) -> None:
-        shell_definition_yaml = Path(os.getcwd()).joinpath(f'{script_definition_yaml}.yaml')
-        with open(shell_definition_yaml, 'r') as file:
+    def __init__(self, script_definition: str) -> None:
+        script_definition_yaml = (script_definition if script_definition.endswith('.yaml') else
+                                  f'{script_definition}.yaml')
+        script_definition_yaml_full_path = Path(os.getcwd()).joinpath(script_definition_yaml)
+        with open(script_definition_yaml_full_path, 'r') as file:
             self.script_definition = yaml.safe_load(file)
         self.dist = Path(os.getcwd()).joinpath('dist')
         self.script_zip = self.dist.joinpath(f'{self.script_definition["metadata"]["script_name"]}.zip')
