@@ -71,7 +71,7 @@ def pack(shell_definition_yaml: str) -> None:
 def script(script_definition_yaml: str) -> None:
     script_utils = ScriptCommandExecutor(script_definition_yaml)
     script_utils.zip_files()
-    # script_utils.update_script()
+    script_utils.update_script()
 
 
 def generate_cli(parsed_args: Namespace) -> None:
