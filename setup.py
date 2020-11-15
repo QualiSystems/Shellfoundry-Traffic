@@ -1,5 +1,5 @@
 """
-Package shellfoundry_traffic for distribution.l
+Package shellfoundry_traffic for distribution.
 """
 
 from setuptools import setup, find_packages

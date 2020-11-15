@@ -10,7 +10,7 @@
     <!-- The server admin username, password and domain to use when deploying -->
     <username>admin</username>
     <password>civ1C2018</password>
-    <domain>LAAS</domain>
+    <domain>Global</domain>
 
     <!-- Simple patterns to filter when sending the driver to the server separated by semicolons (e.g. "file.xml;logs/", also supports regular expressions),
  on top of the patterns specified here the plugin will automatically filter the "deployment/" and ".idea/" folders and the "deployment.xml" file -->
