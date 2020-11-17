@@ -29,13 +29,11 @@ class ScriptCommandExecutor:
 
     def should_zip(self, file: str) -> bool:
         """ Returns whether the file should be added to the shell zip file or not. """
-        if ('files' not in self.script_definition or 'exclude' not in self.script_definition.values()
-                or self.script_definition['files']['exclude'] is None):
-            return True
-        elif file not in self.script_definition['files']['exclude']:
-            return True
+        if self.script_definition.get('files') and self.script_definition['files'].get('exclude'):
+            if file in self.script_definition['files']['exclude']:
+                return False
         else:
-            return False
+            return True
 
     def zip_files(self) -> None:
         with ZipFile(self.script_zip, 'w') as script:
