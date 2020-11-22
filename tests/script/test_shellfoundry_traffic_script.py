@@ -11,7 +11,7 @@ import pytest
 import yaml
 from _pytest.fixtures import SubRequest
 
-from shellfoundry_traffic.shellfoundry_traffic import main
+from shellfoundry_traffic.shellfoundry_traffic_cmd import main
 
 
 @pytest.fixture
