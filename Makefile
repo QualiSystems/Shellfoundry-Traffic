@@ -1,5 +1,5 @@
 
-repo=172.40.0.243
+repo=localhost
 user=pypiadmin
 password=pypiadmin
 

@@ -62,7 +62,7 @@ def create_session_from_cloudshell_config():
     return CloudShellAPISession(host, username, password, domain)
 
 #
-# 2nd generation helers.
+# 2nd generation helpers.
 #
 
 
