@@ -1,10 +1,10 @@
 
-repo=172.40.0.243
+repo=localhost
 user=pypiadmin
 password=pypiadmin
 
 install:
-	pip install -i http://$(repo):8036 --trusted-host $(repo) -U --pre --use-feature=2020-resolver -r requirements-dev.txt
+	pip install -i http://$(repo):8036 --trusted-host $(repo) -U -r requirements-dev.txt
 
 .PHONY: build
 build:

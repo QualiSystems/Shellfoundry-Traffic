@@ -1,9 +1,13 @@
+"""
+Test helpers for shells and scripts testing.
+"""
+
 import inspect
 import json
 import os
 import time
 from os import path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import yaml
 # noinspection PyPep8Naming
@@ -99,18 +103,25 @@ def get_credentials_from_deployment() -> tuple:
 
 def create_session_from_deployment() -> CloudShellAPISession:
     """ Create session from data in deployment yaml file. """
-    return CloudShellAPISession(*get_credentials_from_deployment())
+    host, username, password, domain = get_credentials_from_deployment()
+    session = CloudShellAPISession(host, username, password, domain)
+    # session.domain is Domain ID so we save the domain name in session.domain_name
+    session.domain_name = domain
+    return session
 
 
 def create_session_from_config() -> CloudShellAPISession:
     """ Create session from data in shellfoundry config. """
     config = Configuration(CloudShellConfigReader()).read()
-    return CloudShellAPISession(config.host, config.username, config.password, config.domain)
+    session = CloudShellAPISession(config.host, config.username, config.password, config.domain)
+    # session.domain is Domain ID so we save the domain name in session.domain_name
+    session.domain_name = config.domain
+    return session
 
 
 def create_reservation(session: CloudShellAPISession, reservation_name: str, topology_name: Optional[str] = None,
-                       global_inputs: Optional[list[UpdateTopologyGlobalInputsRequest]] = None):
-    """ Create empty  or topology from reservation based on input. """
+                       global_inputs: Optional[List[UpdateTopologyGlobalInputsRequest]] = None):
+    """ Create empty or topology from reservation based on input. """
     if not global_inputs:
         global_inputs = []
     end_named_reservations(session, reservation_name)
@@ -151,7 +162,7 @@ class TestHelpers:
         self.reservation_id = ''
 
     def create_topology_reservation(self, topology_name,
-                                    global_inputs: Optional[list[UpdateTopologyGlobalInputsRequest]] = None,
+                                    global_inputs: Optional[List[UpdateTopologyGlobalInputsRequest]] = None,
                                     reservation_name: str = 'tg regression tests') -> CreateReservationResponseInfo:
         """ Create new reservation from topology. End existing reservation with the same name if exist. """
         self.reservation = create_reservation(self.session, reservation_name, topology_name, global_inputs)
@@ -183,7 +194,7 @@ class TestHelpers:
 
     def resource_command_context(self, resource_name: Optional[str] = None,
                                  service_name: Optional[str] = None) -> ResourceCommandContext:
-        """ Create reservation, add service to reservation, get context details and create ResourceCommandContext. """
+        """ Create ResourceCommandContext for the given resource/service. """
         os.environ['DEVBOOTSTRAP'] = 'True'
         self.debug_attach_from_deployment(resource_name, service_name)
         reservation = script_helpers.get_reservation_context_details()
@@ -208,8 +219,7 @@ class TestHelpers:
             self.session.SetAttributesValues([ResourceAttributesUpdateRequest(full_name, attributes)])
         return resource
 
-    def create_health_check_services(self, source: str,
-                                     aliases: Optional[dict] = None) -> None:
+    def create_health_check_services(self, source: str, aliases: Optional[dict] = None) -> None:
         """ Create health check service and connect it to to the requested source. """
         if not aliases:
             aliases = {HEALTH_CHECK_STATUS_MODEL: 'none'}
@@ -227,7 +237,7 @@ class TestHelpers:
                                 user=self.session.username,
                                 password=self.session.password,
                                 reservation_id=self.reservation_id,
-                                domain=self.session.domain,
+                                domain=self.session.domain_name,
                                 resource_name=resource_name,
                                 service_name=service_name)
 

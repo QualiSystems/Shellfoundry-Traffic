@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 
-from tests.test_test_helpers import create_session_from_config
+from shellfoundry_traffic.test_helpers import create_session_from_config
 
 
 class ScriptCommandExecutor:
