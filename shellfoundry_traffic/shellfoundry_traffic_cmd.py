@@ -69,7 +69,9 @@ def pack(shell_definition_yaml: str) -> None:
 
 
 def script(script_definition_yaml: str) -> None:
+    """ Create script package (zip file) under dist and upload to to CloudShell server. """
     script_utils = ScriptCommandExecutor(script_definition_yaml)
+    script_utils.get_main()
     script_utils.zip_files()
     script_utils.update_script()
 

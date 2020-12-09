@@ -6,3 +6,4 @@ metadata:
 files:
   exclude:
     - exclude.txt
+  main: main_2.py
