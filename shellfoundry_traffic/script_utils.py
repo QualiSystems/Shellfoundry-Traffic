@@ -10,10 +10,13 @@ NOTE: - This script is only for updating EXISTING scripts.
 import os
 from zipfile import ZipFile
 from pathlib import Path
+from shutil import copyfile
 
 import yaml
 
-from shellfoundry_traffic.test_helpers import create_session_from_config
+from tests.test_test_helpers import create_session_from_config
+
+SRC_DIR = Path(os.getcwd()).joinpath('src')
 
 
 class ScriptCommandExecutor:
@@ -27,6 +30,14 @@ class ScriptCommandExecutor:
         self.dist = Path(os.getcwd()).joinpath('dist')
         self.script_zip = self.dist.joinpath(f'{self.script_definition["metadata"]["script_name"]}.zip')
 
+    def get_main(self) -> None:
+        """ Get requested content for __main__ file. """
+        if self.script_definition.get('files') and self.script_definition['files'].get('main'):
+            new_main_file_name = self.script_definition['files']['main']
+            new_main_path = SRC_DIR.joinpath(new_main_file_name)
+            existing_main_path = SRC_DIR.joinpath('__main__.py')
+            copyfile(new_main_path, existing_main_path)
+
     def should_zip(self, file: str) -> bool:
         """ Returns whether the file should be added to the shell zip file or not. """
         if self.script_definition.get('files') and self.script_definition['files'].get('exclude'):
@@ -37,13 +48,13 @@ class ScriptCommandExecutor:
 
     def zip_files(self) -> None:
         with ZipFile(self.script_zip, 'w') as script:
-            src = Path(os.getcwd()).joinpath('src')
-            for _, _, files in os.walk(src):
+            for _, _, files in os.walk(SRC_DIR):
                 for file in files:
                     if self.should_zip(file):
-                        script.write(src.joinpath(file), file)
+                        script.write(SRC_DIR.joinpath(file), file)
 
     def update_script(self):
         session = create_session_from_config()
         os.chdir(self.dist)
         session.UpdateScript(self.script_definition['metadata']['script_name'], self.script_zip.name)
+        os.chdir('..')

@@ -28,7 +28,7 @@ from shellfoundry.utilities.config_reader import Configuration, CloudShellConfig
 import shellfoundry_traffic.cloudshell_scripts_helpers as script_helpers
 
 
-def load_devices(devices_env: [str] = ''):
+def load_devices(devices_env: Optional[str] = ''):
     deployment_root = get_shell_root()
     devices_file = os.environ.get(devices_env, deployment_root + '/devices.yaml')
     with open(devices_file) as f:
