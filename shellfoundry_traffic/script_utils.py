@@ -14,7 +14,7 @@ from shutil import copyfile
 
 import yaml
 
-from tests.test_test_helpers import create_session_from_config
+from shellfoundry_traffic.test_helpers import create_session_from_config
 
 SRC_DIR = Path(os.getcwd()).joinpath('src')
 
