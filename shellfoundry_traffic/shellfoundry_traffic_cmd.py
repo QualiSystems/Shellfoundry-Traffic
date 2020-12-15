@@ -28,7 +28,6 @@ except IndexError:
 
 
 def _get_main_class(shell_definition_yaml: str) -> str:
-    shell_definition_yaml = Path(os.getcwd()).joinpath(f'{shell_definition_yaml}.yaml')
     with open(shell_definition_yaml, 'r') as file:
         shell_definition = yaml.safe_load(file)
         return shell_definition['metadata']['traffic']['main_class']
@@ -38,7 +37,7 @@ def _set_toska_meta(shell_definition_yaml: str) -> None:
     tosca_meta = Path(os.getcwd()).joinpath('TOSCA-Metadata').joinpath('TOSCA.meta')
     with open(tosca_meta, 'r') as file:
         meta_data = yaml.safe_load(file)
-        meta_data['Entry-Definitions'] = f'{shell_definition_yaml}.yaml'
+        meta_data['Entry-Definitions'] = shell_definition_yaml
     with open(tosca_meta, 'w') as file:
         yaml.dump(meta_data, file)
 
@@ -56,8 +55,10 @@ def install(shell_definition_yaml: str) -> None:
     InstallCommandExecutor().install()
 
 
-def pack(shell_definition_yaml: str) -> None:
+def pack(shell_definition: str) -> None:
     """ Set MainClass in drivermetadata yaml to the requested class and call shellfoundry pack. """
+    shell_definition_yaml = (shell_definition if shell_definition.endswith('.yaml') else
+                             f'{shell_definition}.yaml')
     _set_toska_meta(shell_definition_yaml)
     drivermetadata_xml = Path(os.getcwd()).joinpath('src').joinpath('drivermetadata.xml')
     drivermetadata = ElementTree.parse(drivermetadata_xml)
