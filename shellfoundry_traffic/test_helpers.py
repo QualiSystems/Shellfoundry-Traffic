@@ -183,20 +183,22 @@ class TestHelpers:
 
     def autoload_command_context(self, family: str, model: str, address: str,
                                  attributes: Optional[dict] = None) -> AutoLoadCommandContext:
+        """ Create AutoLoadCommandContext for the requested resource. """
         return AutoLoadCommandContext(*self._conn_and_res(family, model, address, attributes, 'Resource', ''))
 
     def service_init_command_context(self, model: str, attributes: Optional[dict] = None) -> InitCommandContext:
+        """ Create InitCommandContext for the requested service model. """
         return InitCommandContext(*self._conn_and_res('CS_CustomService', model, 'na', attributes, 'Service', ''))
 
     def resource_init_command_context(self, family: str, model: str, address: str, attributes: Optional[dict] = None,
                                       full_name='Testing/testing') -> InitCommandContext:
+        """ Create InitCommandContext for the requested resource. """
         return InitCommandContext(*self._conn_and_res(family, model, address, attributes, 'Resource', full_name))
 
     def resource_command_context(self, resource_name: Optional[str] = None,
                                  service_name: Optional[str] = None) -> ResourceCommandContext:
         """ Create ResourceCommandContext for the given resource/service. """
-        os.environ['DEVBOOTSTRAP'] = 'True'
-        self.debug_attach_from_deployment(resource_name, service_name)
+        self.attach_to_cloudshell_as(resource_name, service_name)
         reservation = script_helpers.get_reservation_context_details()
         resource = script_helpers.get_resource_context_details()
         connectivity = ConnectivityContext(self.session.host, '8029', '9000', self.session.token_id, '9.1',
@@ -231,8 +233,9 @@ class TestHelpers:
         wait_for_services(self.session, self.reservation_id, list(aliases.keys()), timeout=8)
         wait_for_connectors(self.session, self.reservation_id, list(aliases.keys()))
 
-    def debug_attach_from_deployment(self, resource_name: Optional[str] = None,
-                                     service_name: Optional[str] = None) -> None:
+    def attach_to_cloudshell_as(self, resource_name: Optional[str] = None, service_name: Optional[str] = None) -> None:
+        """ Mock ES behaviour on local machine so the test can create local objects such as contexts, sandboxes etc. """
+        os.environ['DEVBOOTSTRAP'] = 'True'
         attach_to_cloudshell_as(server_address=self.session.host,
                                 user=self.session.username,
                                 password=self.session.password,
