@@ -43,8 +43,7 @@ class ScriptCommandExecutor:
         if self.script_definition.get('files') and self.script_definition['files'].get('exclude'):
             if file in self.script_definition['files']['exclude']:
                 return False
-        else:
-            return True
+        return True
 
     def zip_files(self) -> None:
         with ZipFile(self.script_zip, 'w') as script:
