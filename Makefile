@@ -4,11 +4,14 @@ user=pypiadmin
 password=pypiadmin
 
 install:
-	pip install -i http://$(repo):8036 --trusted-host $(repo) -U -r requirements-dev.txt
+	python -m pip install -U pip
+	pip install -U -r requirements-dev.txt
 
 .PHONY: build
 build:
-	rm -rf dist/
+	rm -rf dist/*
+	rm -rf *.egg-info
+	rm -rf build
 	python setup.py bdist_wheel
 
 upload:

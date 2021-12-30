@@ -1,9 +1,8 @@
-
 import json
 import os
 
 from cloudshell.api.cloudshell_api import CloudShellAPISession
-from cloudshell.shell.core.driver_context import ResourceContextDetails, ReservationContextDetails
+from cloudshell.shell.core.driver_context import ReservationContextDetails, ResourceContextDetails
 
 
 def get_user_param(parameter):
@@ -23,11 +22,13 @@ def get_api_session():
     """
     con_details = get_connectivity_context_details_dict()
     env_details = get_reservation_context_details_dict()
-    return CloudShellAPISession(host=con_details['serverAddress'],
-                                username=con_details['adminUser'],
-                                password=con_details['adminPass'],
-                                domain=env_details['domain'],
-                                cloudshell_api_scheme=con_details.get("tsAPIScheme", "http"))
+    return CloudShellAPISession(
+        host=con_details["serverAddress"],
+        username=con_details["adminUser"],
+        password=con_details["adminPass"],
+        domain=env_details["domain"],
+        cloudshell_api_scheme=con_details.get("tsAPIScheme", "http"),
+    )
 
 
 def get_reservation_context_details_dict():
@@ -36,7 +37,7 @@ def get_reservation_context_details_dict():
     These details are automatically passed to the driver by CloudShell
     :rtype: dict[str,str]
     """
-    return _get_quali_env_variable_object('reservationContext')
+    return _get_quali_env_variable_object("reservationContext")
 
 
 def get_resource_context_details_dict():
@@ -45,7 +46,7 @@ def get_resource_context_details_dict():
     These details are automatically passed to the driver by CloudShell
     :rtype: dict[str,str]
     """
-    return _get_quali_env_variable_object('resourceContext')
+    return _get_quali_env_variable_object("resourceContext")
 
 
 def get_reservation_context_details():
@@ -56,16 +57,18 @@ def get_reservation_context_details():
     :rtype: ReservationContextDetails
     """
     res_dict = get_reservation_context_details_dict()
-    res_details = ReservationContextDetails(environment_name=res_dict['environmentName'],
-                                            environment_path=res_dict['environmentPath'],
-                                            domain=res_dict['domain'],
-                                            description=res_dict['description'],
-                                            owner_user=res_dict['ownerUser'],
-                                            owner_email='no-email',
-                                            reservation_id=res_dict['id'],
-                                            saved_sandbox_name=res_dict['savedSandboxId'],
-                                            saved_sandbox_id='',
-                                            running_user=res_dict['runningUser'])
+    res_details = ReservationContextDetails(
+        environment_name=res_dict["environmentName"],
+        environment_path=res_dict["environmentPath"],
+        domain=res_dict["domain"],
+        description=res_dict["description"],
+        owner_user=res_dict["ownerUser"],
+        owner_email="no-email",
+        reservation_id=res_dict["id"],
+        saved_sandbox_name=res_dict["savedSandboxId"],
+        saved_sandbox_id="",
+        running_user=res_dict["runningUser"],
+    )
     return res_details
 
 
@@ -77,19 +80,21 @@ def get_resource_context_details():
     :rtype: ResourceContextDetails
     """
     res_dict = get_resource_context_details_dict()
-    res_details = ResourceContextDetails(name=res_dict['name'],
-                                         address=res_dict['address'],
-                                         model=res_dict['model'],
-                                         family=res_dict['family'],
-                                         description=res_dict['description'],
-                                         fullname=res_dict['fullname'],
-                                         attributes=res_dict['attributes'],
-                                         id='',
-                                         type='',
-                                         app_context=None,
-                                         networks_info='',
-                                         shell_standard='',
-                                         shell_standard_version='')
+    res_details = ResourceContextDetails(
+        name=res_dict["name"],
+        address=res_dict["address"],
+        model=res_dict["model"],
+        family=res_dict["family"],
+        description=res_dict["description"],
+        fullname=res_dict["fullname"],
+        attributes=res_dict["attributes"],
+        id="",
+        type="",
+        app_context=None,
+        networks_info="",
+        shell_standard="",
+        shell_standard_version="",
+    )
     return res_details
 
 
@@ -98,7 +103,7 @@ def get_connectivity_context_details_dict():
     Get the connectivity details dictionary for this execution
     :rtype: dict[str,str]
     """
-    return _get_quali_env_variable_object('qualiConnectivityContext')
+    return _get_quali_env_variable_object("qualiConnectivityContext")
 
 
 def get_connectivity_context_details():
@@ -107,10 +112,9 @@ def get_connectivity_context_details():
     :rtype: ConnectivityContextDetails
     """
     con_dict = get_connectivity_context_details_dict()
-    return ConnectivityContextDetails(con_dict['serverAddress'],
-                                      con_dict['tsAPIPort'],
-                                      con_dict['adminUser'],
-                                      con_dict['adminPass'])
+    return ConnectivityContextDetails(
+        con_dict["serverAddress"], con_dict["tsAPIPort"], con_dict["adminUser"], con_dict["adminPass"]
+    )
 
 
 def get_global_inputs():
@@ -118,8 +122,8 @@ def get_global_inputs():
     Get the global inputs dictionary for the current reservation
     :rtype: dict[str,str]
     """
-    reservation_params = get_reservation_context_details_dict()['parameters']
-    return _covert_to_python_dictionary(reservation_params['globalInputs'])
+    reservation_params = get_reservation_context_details_dict()["parameters"]
+    return _covert_to_python_dictionary(reservation_params["globalInputs"])
 
 
 def get_resource_requirement_inputs():
@@ -127,9 +131,8 @@ def get_resource_requirement_inputs():
     Get the resource requirements inputs dictionary
     :rtype: ResourceInputs
     """
-    reservation_params = get_reservation_context_details_dict()['parameters']
-    return _covert_to_resource_inputs_dictionary(
-        reservation_params['resourceRequirements'])
+    reservation_params = get_reservation_context_details_dict()["parameters"]
+    return _covert_to_resource_inputs_dictionary(reservation_params["resourceRequirements"])
 
 
 def get_resource_additional_info_inputs():
@@ -137,9 +140,8 @@ def get_resource_additional_info_inputs():
     Get the resource additional inputs inputs dictionary
     :rtype: ResourceInputs
     """
-    reservation_params = get_reservation_context_details_dict()['parameters']
-    return _covert_to_resource_inputs_dictionary(
-        reservation_params['resourceAdditionalInfo'])
+    reservation_params = get_reservation_context_details_dict()["parameters"]
+    return _covert_to_resource_inputs_dictionary(reservation_params["resourceAdditionalInfo"])
 
 
 def get_permitted_users():
@@ -147,15 +149,15 @@ def get_permitted_users():
     Get the list of permitted users for the current reservation
     :rtype: List[UserDetails]
     """
-    reservation_permitted_users = get_reservation_context_details_dict()['permittedUsers']
+    reservation_permitted_users = get_reservation_context_details_dict()["permittedUsers"]
     return _covert_to_permitted_users_list(reservation_permitted_users)
 
 
 def _covert_to_permitted_users_list(permitted_users):
     permitted_users_data = []
     for user in permitted_users:
-        username = user['userName']
-        email = user['email']
+        username = user["userName"]
+        email = user["email"]
         permitted_users_data.append(UserDetails(username, email))
     return permitted_users_data
 
@@ -165,7 +167,7 @@ def _get_quali_env_variable_object(name):
     try:
         json_object = json.loads(json_string)
     except ValueError:
-        json_object = json.loads(json_string.replace('\\', '\\\\'))
+        json_object = json.loads(json_string.replace("\\", "\\\\"))
     return json_object
 
 
@@ -176,26 +178,24 @@ def _get_quali_env_variable_as_string(name):
 def _covert_to_python_dictionary(parameters):
     inputs_dictionary = {}
     for param in parameters:
-        inputs_dictionary[param['parameterName']] = param['value']
+        inputs_dictionary[param["parameterName"]] = param["value"]
     return inputs_dictionary
 
 
 def _covert_to_resource_inputs_dictionary(parameters):
     inputs_dictionary = ResourceInputs()
     for param in parameters:
-        resource_name = param['resourceName']
-        value = param['value']
-        param_name = param['parameterName']
-        possible_values = param.get('possibleValues', None)
-        data = ResourceInputData(resource_name, param_name, value,
-                                 possible_values)
+        resource_name = param["resourceName"]
+        value = param["value"]
+        param_name = param["parameterName"]
+        possible_values = param.get("possibleValues", None)
+        data = ResourceInputData(resource_name, param_name, value, possible_values)
         inputs_dictionary[resource_name] = data
     return inputs_dictionary
 
 
 class ConnectivityContextDetails:
-    def __init__(self, server_address, cloudshell_api_port,
-                 admin_user, admin_pass):
+    def __init__(self, server_address, cloudshell_api_port, admin_user, admin_pass):
         self.server_address = server_address
         """:type : str"""
         self.cloudshell_api_port = cloudshell_api_port
@@ -215,8 +215,7 @@ class UserDetails:
 
 
 class EnvironmentParameters:
-    def __init__(self, global_inputs, resource_requirements,
-                 resource_additional_info):
+    def __init__(self, global_inputs, resource_requirements, resource_additional_info):
         self.global_inputs = global_inputs
         """:type : dict[str,str]"""
         self.resource_requirements = resource_requirements
@@ -248,8 +247,7 @@ class ResourceInputs:
     def __setitem__(self, resource_name, resource_input_data):
         if resource_name not in self.dictionary.keys():
             self.dictionary[resource_name] = {}
-        self.dictionary[resource_name][resource_input_data.param_name]\
-            = resource_input_data
+        self.dictionary[resource_name][resource_input_data.param_name] = resource_input_data
 
     def __iter__(self):
         return self.dictionary.items()

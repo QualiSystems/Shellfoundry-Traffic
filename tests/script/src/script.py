@@ -1,5 +1,3 @@
-
-
 class TestOrchestration:
     """ Orcharstarion script for cable modem healthcheck. """
 
