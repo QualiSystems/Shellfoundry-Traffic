@@ -33,7 +33,7 @@ import shellfoundry_traffic.cloudshell_scripts_helpers as script_helpers
 
 def load_devices(devices_env: str) -> dict:
     """Load devices from devices file."""
-    devices_file = os.environ.get(devices_env)
+    devices_file = os.environ[devices_env]
     with open(devices_file, "r") as devices:
         return yaml.safe_load(devices)
 
@@ -103,7 +103,7 @@ class TestHelpers:
 
     def __init__(self, session: CloudShellAPISession) -> None:
         self.session = session
-        self.reservation = None
+        self.reservation: CreateReservationResponseInfo = None
         self.reservation_id = ""
 
     def create_topology_reservation(

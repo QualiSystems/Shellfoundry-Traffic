@@ -28,20 +28,20 @@ def dist() -> Iterable[Path]:
 
 @pytest.fixture(params=["script-definition", "script-definition.yaml"])
 def script_definition_yaml(request: SubRequest) -> str:
-    """ Yields shell definition yaml attribute for testing. """
+    """Yields shell definition yaml attribute for testing."""
     return request.param
 
 
 @pytest.mark.parametrize("args", [["script", "-h"]])
 def test_sub_commands(args: List[str]) -> None:
-    """ Test general behaviour of shellfoundry_traffic sub commands. """
+    """Test general behaviour of shellfoundry_traffic sub commands."""
     with pytest.raises(SystemExit) as exception_info:
         main(args)
     assert exception_info.value.code == 0
 
 
 def test_script(dist: Path, script_definition_yaml: str) -> None:
-    """ Test script sub command. """
+    """Test script sub command."""
     main(["--yaml", script_definition_yaml, "script"])
     excluded_files = _get_script_definition(script_definition_yaml)["files"]["exclude"]
     assert excluded_files[0] not in _get_script_zip(dist, script_definition_yaml).filelist
@@ -49,7 +49,8 @@ def test_script(dist: Path, script_definition_yaml: str) -> None:
 
 def test_get_main(script_definition_yaml: str) -> None:
     """Test get_main method."""
-    open(SRC_DIR.joinpath("__main__.py"), "w").close()
+    with open(SRC_DIR.joinpath("__main__.py"), "w"):
+        pass
     script_command = ScriptCommandExecutor(script_definition=script_definition_yaml)
     script_command.get_main()
     script_definition = _get_script_definition(script_definition_yaml)

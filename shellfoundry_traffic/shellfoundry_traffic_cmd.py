@@ -67,7 +67,7 @@ def pack(shell_definition: str) -> None:
 
 
 def script(script_definition_yaml: str) -> None:
-    """ Create script package (zip file) under dist and upload to to CloudShell server. """
+    """Create script package (zip file) under dist and upload to to CloudShell server."""
     script_utils = ScriptCommandExecutor(script_definition_yaml)
     script_utils.get_main()
     script_utils.zip_files()
@@ -75,27 +75,27 @@ def script(script_definition_yaml: str) -> None:
 
 
 def generate_cli(parsed_args: Namespace) -> None:
-    """ Extract CLI attributes and call shellfoundry-traffic generate. """
+    """Extract CLI attributes and call shellfoundry-traffic generate."""
     generate(parsed_args.yaml)
 
 
 def install_cli(parsed_args: Namespace) -> None:
-    """ Extract CLI attributes and call shellfoundry-traffic install. """
+    """Extract CLI attributes and call shellfoundry-traffic install."""
     install(parsed_args.yaml)
 
 
 def pack_cli(parsed_args: Namespace) -> None:
-    """ Extract CLI attributes and call shellfoundry-traffic pack. """
+    """Extract CLI attributes and call shellfoundry-traffic pack."""
     pack(parsed_args.yaml)
 
 
 def script_cli(parsed_args: Namespace) -> None:
-    """ Extract CLI attributes and call shellfoundry-traffic update. """
+    """Extract CLI attributes and call shellfoundry-traffic update."""
     script(parsed_args.yaml)
 
 
 def main(args: Optional[list] = None) -> None:
-    """ shellfoundry_traffic CLI command implementation. """
+    """shellfoundry_traffic CLI command implementation."""
     parser = ArgumentParser(description="shellfoundry wrapper for traffic shells", formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument("-V", "--version", action="version", version=VERSION)
     parser.add_argument("-y", "--yaml", required=True, metavar="YAML file", type=str, help="local shell definition yaml file")

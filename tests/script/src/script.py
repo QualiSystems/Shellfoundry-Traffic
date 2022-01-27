@@ -1,5 +1,5 @@
 class TestOrchestration:
-    """ Orcharstarion script for cable modem healthcheck. """
+    """Orchestration script for testing."""
 
     def __init__(self, sandbox, debug=False):
         pass

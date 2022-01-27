@@ -14,8 +14,7 @@ RESERVATION_NAME = "testing 1 2 3"
 def session() -> CloudShellAPISession:
     """Yields CloudShell session."""
     session = create_session_from_config()
-    yield session
-    # todo: delete session.
+    return session
 
 
 @pytest.fixture()
