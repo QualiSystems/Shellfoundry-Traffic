@@ -1,7 +1,6 @@
 """
 Test helpers for shells and scripts testing.
 """
-
 import os
 import time
 from pathlib import Path
@@ -38,6 +37,7 @@ def load_devices(devices_env: str) -> dict:
         return yaml.safe_load(devices)
 
 
+# flake8: noqa: T001
 def print_inventory(inventory: AutoLoadDetails) -> None:
     """Print inventory resources and attributes."""
     print("\n")

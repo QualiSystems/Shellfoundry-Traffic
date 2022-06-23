@@ -15,7 +15,11 @@ def main() -> None:
     setup(
         name="shellfoundry-traffic",
         url="https://github.com/QualiSystems/shellfoundry-traffic",
-        use_scm_version={"root": ".", "relative_to": __file__, "local_scheme": "node-and-timestamp"},
+        use_scm_version={
+            "root": ".",
+            "relative_to": __file__,
+            "local_scheme": "node-and-timestamp",
+        },
         license="Apache Software License",
         author="QualiSystems",
         author_email="info@qualisystems.com",

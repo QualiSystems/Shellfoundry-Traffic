@@ -96,9 +96,19 @@ def script_cli(parsed_args: Namespace) -> None:
 
 def main(args: Optional[list] = None) -> None:
     """shellfoundry_traffic CLI command implementation."""
-    parser = ArgumentParser(description="shellfoundry wrapper for traffic shells", formatter_class=RawDescriptionHelpFormatter)
+    parser = ArgumentParser(
+        description="shellfoundry wrapper for traffic shells",
+        formatter_class=RawDescriptionHelpFormatter,
+    )
     parser.add_argument("-V", "--version", action="version", version=VERSION)
-    parser.add_argument("-y", "--yaml", required=True, metavar="YAML file", type=str, help="local shell definition yaml file")
+    parser.add_argument(
+        "-y",
+        "--yaml",
+        required=True,
+        metavar="YAML file",
+        type=str,
+        help="local shell definition yaml file",
+    )
 
     subparsers = parser.add_subparsers(help='type "shellfoundry-traffic [subcommand] -h" for help.')
 
@@ -110,7 +120,9 @@ def main(args: Optional[list] = None) -> None:
     parser_install.set_defaults(func=install_cli)
 
     parser_generate = subparsers.add_parser(
-        "generate", formatter_class=RawDescriptionHelpFormatter, description="set shell-definition.yaml file then generate"
+        "generate",
+        formatter_class=RawDescriptionHelpFormatter,
+        description="set shell-definition.yaml file then generate",
     )
     parser_generate.set_defaults(func=generate_cli)
 
@@ -122,7 +134,9 @@ def main(args: Optional[list] = None) -> None:
     parser_pack.set_defaults(func=pack_cli)
 
     parser_pack = subparsers.add_parser(
-        "script", formatter_class=RawDescriptionHelpFormatter, description="update existing script on server"
+        "script",
+        formatter_class=RawDescriptionHelpFormatter,
+        description="update existing script on server",
     )
     parser_pack.set_defaults(func=script_cli)
 
