@@ -7,3 +7,16 @@ cloudshell-orch-core>=3.3.0.0,<3.4.0.0
 cloudshell-shell-core>=5.0.3,<6.0.0
 cloudshell-rest-api>=8.2.3.1
 shellfoundry
+
+# Testing
+pytest-cov
+
+# Packaging
+setuptools-scm
+build
+twine
+
+# Pipeline
+pre-commit
+pylint
+pylint_pytest

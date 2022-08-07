@@ -1,3 +1,1 @@
-CloudShell Traffic Controller Shell base package, powered by Quali.
-
-This base package provides base classes for CloudShell Traffic Controller driver and handler and helpers utilities.
+Shellfoundry extension to help develop and test Traffic Generators shells, powered by Quali.

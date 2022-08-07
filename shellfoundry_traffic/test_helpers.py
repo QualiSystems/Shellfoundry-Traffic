@@ -1,11 +1,13 @@
 """
 Test helpers for shells and scripts testing.
 """
+# pylint: disable=redefined-outer-name
 import os
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
+import pytest
 import yaml
 from cloudshell.api.cloudshell_api import (
     CloudShellAPISession,
@@ -94,7 +96,7 @@ def end_reservation(session: CloudShellAPISession, reservation_id: str) -> None:
         while session.GetReservationDetails(reservation_id).ReservationDescription.Status != "Completed":
             time.sleep(1)
         session.DeleteReservation(reservation_id)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         pass
 
 
@@ -240,3 +242,25 @@ class TestHelpers:
             shell_standard_version="",
         )
         return connectivity, resource
+
+
+@pytest.fixture(scope="session")
+def session() -> CloudShellAPISession:
+    """Yield session."""
+    return create_session_from_config()
+
+
+@pytest.fixture()
+def test_helpers(session: CloudShellAPISession) -> Iterable[TestHelpers]:
+    """Yield initialized TestHelpers object."""
+    test_helpers = TestHelpers(session)
+    test_helpers.create_reservation()
+    yield test_helpers
+    test_helpers.end_reservation()
+
+
+@pytest.fixture
+def skip_if_offline(server: list) -> None:
+    """Skip test on offline ports."""
+    if [port for port in server[2] if "offline-debug" in port]:
+        pytest.skip("offline-debug port")

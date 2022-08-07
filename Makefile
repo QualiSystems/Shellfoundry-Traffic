@@ -13,11 +13,11 @@ clean:
 install:
 	make clean
 	python -m pip install -U pip
-	pip install -U -r requirements-dev.txt
+	pip install -U -r requirements.txt
 
 build:
 	make clean
-	python setup.py bdist_wheel
+	python -m build . --wheel
 
 upload:
 	make build

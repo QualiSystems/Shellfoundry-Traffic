@@ -1,5 +1,3 @@
-# If installation fails - export SETUPTOOLS_USE_DISTUTILS=stdlib - as suggested in
-# https://github.com/pre-commit/pre-commit/issues/2178#issuecomment-1002163763
 exclude: "shellfoundry_traffic/cloudshell_scripts_helpers.py|tests/script/src/script.py|tests/shell/.*"
 repos:
   - repo: https://github.com/timothycrosley/isort
@@ -26,8 +24,8 @@ repos:
           flake8-eradicate,
         ]
         language_version: python3.9
-        args: ['--ignore=A002,A003,D100,D101,D102,D103,D104,D105,D106,D107,D200,D210,D401,E203,W503']
-  # See https://stackoverflow.com/questions/61238318/pylint-and-pre-commit-hook-unable-to-import/61238571#61238571
+        args: [--max-line-length=127,
+               '--ignore=A002,A003,D100,D101,D102,D103,D104,D105,D106,D107,D200,D210,D401,E203,W503']
   - repo: local
     hooks:
       - id: pylint

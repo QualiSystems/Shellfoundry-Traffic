@@ -1,3 +1,0 @@
-
-- Transform tests folder and sub-folders python package and sub-packages.
-- Why do we have two licenses?
