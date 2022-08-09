@@ -105,7 +105,7 @@ def test_toska_standard(dist: Path, packaging_api: PackagingRestApiClient) -> No
 
 
 def _template_name(shell_definition_yaml: str) -> str:
-    tosca_meta = Path(os.getcwd()).joinpath(f"{shell_definition_yaml}.yaml")
+    tosca_meta = Path(__file__).parent.joinpath(f"{shell_definition_yaml}.yaml")
     with open(tosca_meta, "r") as file:
         shell_definition = yaml.safe_load(file)
         return shell_definition["metadata"]["template_name"]
@@ -118,7 +118,7 @@ def _get_shell_zip(dist: Path, shell_definition_yaml: str) -> ZipFile:
 
 def _get_driver_zip(dist: Path, shell_definition_yaml: str) -> ZipFile:
     shell_zip = _get_shell_zip(dist, shell_definition_yaml)
-    tosca_meta = Path(os.getcwd()).joinpath(f"{shell_definition_yaml}.yaml")
+    tosca_meta = Path(__file__).parent.joinpath(f"{shell_definition_yaml}.yaml")
     with open(tosca_meta, "r") as file:
         shell_definition = yaml.safe_load(file)
         artifacts_driver_file = list(shell_definition["node_types"].values())[0]["artifacts"]["driver"]["file"]
