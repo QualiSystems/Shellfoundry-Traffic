@@ -100,7 +100,7 @@ def end_reservation(session: CloudShellAPISession, reservation_id: str) -> None:
         pass
 
 
-class TestHelpers:
+class TgTestHelpers:
     """Manage test session and reservation."""
 
     def __init__(self, session: CloudShellAPISession) -> None:
@@ -251,9 +251,9 @@ def session() -> CloudShellAPISession:
 
 
 @pytest.fixture()
-def test_helpers(session: CloudShellAPISession) -> Iterable[TestHelpers]:
+def test_helpers(session: CloudShellAPISession) -> Iterable[TgTestHelpers]:
     """Yield initialized TestHelpers object."""
-    test_helpers = TestHelpers(session)
+    test_helpers = TgTestHelpers(session)
     test_helpers.create_reservation()
     yield test_helpers
     test_helpers.end_reservation()

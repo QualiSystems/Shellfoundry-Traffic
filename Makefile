@@ -1,9 +1,8 @@
+.PHONY: build
 
 repo=localhost
 user=pypiadmin
 password=pypiadmin
-
-.PHONY: build
 
 clean:
 	rm -rf dist/*
@@ -18,6 +17,11 @@ install:
 build:
 	make clean
 	python -m build . --wheel
+
+test:
+	cd tests; pytest test_test_helpers.py
+	cd tests/shell;	pytest test_shellfoundry_traffic_shell.py
+	cd tests/script; pytest test_shellfoundry_traffic_script.py
 
 upload:
 	make build
