@@ -182,6 +182,9 @@ class TgTestHelpers:
         existing_resource = [r for r in self.session.GetResourceList().Resources if r.Name == name]
         if existing_resource:
             self.session.DeleteResource(existing_resource[0].Name)
+        folders = [c.Name.lower() for c in self.session.GetFolderContent().ContentArray]
+        if folder not in folders:
+            raise ValueError(f"Folder {folder} not found, available folders - {folders}")
         resource = self.session.CreateResource(
             resourceModel=model,
             resourceName=name,
